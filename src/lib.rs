@@ -11,7 +11,8 @@ pub use DFATransition = dfa::DFATransition;
 /// Basic trait abstracting over all automata.  
 /// Checks if an automaton accepts a given string.
 pub trait Run {
-    /// Returns true if the automaton accepts string, or None if given an invalid string.
+    /// Returns a boolean representing if the DFA accepts the string, or None
+    /// if the string contains invalid characters.
     fn run(&self, string: &str) -> Option<bool>;
 }
 
