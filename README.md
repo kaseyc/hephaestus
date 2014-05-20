@@ -6,9 +6,9 @@ Automata for Rust
 
 Progress
 ======
-Deterministic Finite Automata: Implemented
-Non-deterministic Finite Automata: In progress
-DFA Transformations (Complement, union, intersection): Up next
+* Deterministic Finite Automata: Implemented  
+* Non-deterministic Finite Automata: In progress  
+* DFA Transformations (Complement, union, intersection): Up next
 
 Why?
 ----
