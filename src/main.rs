@@ -5,14 +5,23 @@ use hephaestus::{Run,DFA};
 fn main() {
     let q = 2;
     let sigma = vec!('0', '1');
-    let delta = vec!((0, '0', 1),
-                     (0, '1', 1),
-                     (1, '0', 0),
-                     (1, '1', 0));
-    let q0 = 0;
-    let f = vec!(0);
 
-    let x = match DFA::new(q, sigma, delta, q0, f) {
+    //Strings of all 0s
+    let delta1 = vec!((0, '0', 0),
+                      (0, '1', 1),
+                      (1, '0', 1),
+                      (1, '1', 1));
+
+    //Strings of all 1s
+    let delta2 = vec!((0, '0', 1),
+                      (0, '1', 0),
+                      (1, '0', 1),
+                      (1, '1', 1));
+
+    let q0 = 0;
+    let f: Vec<uint> = vec!(0);
+
+    let zeroes = match DFA::new(q, sigma.clone(), delta1, q0, f.clone()) {
         Ok(p) => p,
         Err(e) => {
             println!("Error: {}", e);
@@ -20,13 +29,33 @@ fn main() {
         }
     };
 
-    println!("{}", x);
+    let ones = match DFA::new(q, sigma, delta2, q0, f) {
+        Ok(p) => p,
+        Err(e) => {
+            println!("Error: {}", e);
+            fail!()
+        }
+    };
+
+    let u = zeroes.union(&ones);
+    let i = zeroes.intersect(&ones);
+
+    println!("{}", u);
 
     //Run some strings
-    let strings = vec!("0", "0100", "001", "1", "0", "00", "1111111111");
+    let strings = vec!("0", "0100", "001", "1", "000000", "", "1111111111");
 
+    println!("UNION\n");
     for string in strings.iter() {
-        match x.run(*string) {
+        match u.run(*string) {
+            Some(s) => println!("String: \"{}\", Result: {}\n", *string, s),
+            None => println!("String: \"{}\", Result: Invalid\n", *string)
+        }
+    }
+
+    println!("INTERSECTION\n");
+    for string in strings.iter() {
+        match i.run(*string) {
             Some(s) => println!("String: \"{}\", Result: {}\n", *string, s),
             None => println!("String: \"{}\", Result: Invalid\n", *string)
         }
