@@ -37,8 +37,9 @@ fn main() {
         }
     };
 
-    let u = zeroes.union(&ones);
-    let i = zeroes.intersect(&ones);
+    let u = zeroes.union(&ones).unwrap(); //Strings of only 1s and 0s  
+    let i = zeroes.intersect(&ones).unwrap(); //Empty string only
+    let c = zeroes.complement(); //All with at least one 1
 
     println!("{}", u);
 
@@ -56,6 +57,14 @@ fn main() {
     println!("INTERSECTION\n");
     for string in strings.iter() {
         match i.run(*string) {
+            Some(s) => println!("String: \"{}\", Result: {}\n", *string, s),
+            None => println!("String: \"{}\", Result: Invalid\n", *string)
+        }
+    }
+
+    println!("COMPLEMENT\n");
+    for string in strings.iter() {
+        match c.run(*string) {
             Some(s) => println!("String: \"{}\", Result: {}\n", *string, s),
             None => println!("String: \"{}\", Result: Invalid\n", *string)
         }

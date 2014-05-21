@@ -82,73 +82,38 @@ impl DFA {
         })
     }
 
-    //TODO: Clean up union and intersection in order to reduce repeated code!!
-
     /// Return a new DFA representing the union of the inputs.  
     /// The union accepts any string that either input DFA would accept.  
     /// Both DFAs mus accept the same alphabet.  
-    pub fn union (&self, d2: &DFA) -> DFA {
-
-        // CHECK ALPHABET
-        let num_states = self.num_states * d2.num_states;
-        let mut state_map = HashMap::with_capacity(num_states);
-        let mut count: uint = 0;
-        let mut accept: Vec<uint> = Vec::new();
-
-        //Take the cartesian product of the states in both DFAs and map them to integers
-        //Additionally, build the list of accept states
-        for i in range (0, self.num_states) {
-            for j in range (0, d2.num_states) {
-                state_map.insert((i, j), count);
-                if self.accept.contains(&i) || d2.accept.contains(&j) {
-                    accept.push(count);
-                }
-
-                count += 1;
-            }
-        }
-
-        let start: uint = state_map.get_copy(&(self.start, d2.start));
-
-        //Build the transition function
-        //Assumes both self and d2 are valid DFAs
-        let trns_size = num_states * self.alphabet.len();
-        let mut trns_fn = HashMap::with_capacity(trns_size);
-
-        for i in range(0, self.num_states) {
-            for j in range(0, d2.num_states) {
-                for sym in self.alphabet.iter() {
-                    let s1 = self.delta.get_copy(&(i, *sym));
-                    let s2 = d2.delta.get_copy(&(j, *sym));
-                    let curr_s = state_map.get_copy(&(i,j));
-                    let new_s = state_map.get_copy(&(s1, s2));
-                    trns_fn.insert((curr_s, sym.clone()), new_s);
-                }
-            }
-        }
-
-        DFA {accept: accept,
-             start: start, 
-             delta: trns_fn, 
-             alphabet: self.alphabet.clone(), 
-             num_states: num_states
-        }
+    pub fn union (&self, d2: &DFA) -> Option<DFA> {
+        DFA::dfa_product(self, d2, |x, y| { x || y })
     }
 
     /// Return a DFA representing the intersection of the inputs.  
     /// Accepts all strings accepted by both input DFAs.  
-    pub fn intersect(&self, d2: &DFA) -> DFA {
-        let num_states = self.num_states * d2.num_states;
+    pub fn intersect(&self, d2: &DFA) -> Option<DFA> {
+        DFA::dfa_product(self, d2, |x, y| { x && y })
+    }
+
+    //Take the cartesian product of 2 DFAs.
+    //This is the basis for both union and intersection.
+    fn dfa_product(d1: &DFA, d2: &DFA, f: |bool, bool| -> bool) -> Option<DFA> {
+        //Check that the DFAs have matching alphabets
+        if d1.alphabet != d2.alphabet {
+            return None
+        }
+
+        let num_states = d1.num_states * d2.num_states;
         let mut state_map = HashMap::with_capacity(num_states);
         let mut count: uint = 0;
         let mut accept: Vec<uint> = Vec::new();
 
         //Take the cartesian product of the states in both DFAs and map them to integers
         //Additionally, build the list of accept states
-        for i in range (0, self.num_states) {
+        for i in range (0, d1.num_states) {
             for j in range (0, d2.num_states) {
                 state_map.insert((i, j), count);
-                if self.accept.contains(&i) && d2.accept.contains(&j) {
+                if f(d1.accept.contains(&i), d2.accept.contains(&j)) {
                     accept.push(count);
                 }
 
@@ -156,17 +121,17 @@ impl DFA {
             }
         }
 
-        let start: uint = state_map.get_copy(&(self.start, d2.start));
+        let start: uint = state_map.get_copy(&(d1.start, d2.start));
 
         //Build the transition function
-        //Assumes both self and d2 are valid DFAs
-        let trns_size = num_states * self.alphabet.len();
+        //Assumes both d1 and d2 are valid DFAs
+        let trns_size = num_states * d1.alphabet.len();
         let mut trns_fn = HashMap::with_capacity(trns_size);
 
-        for i in range(0, self.num_states) {
+        for i in range(0, d1.num_states) {
             for j in range(0, d2.num_states) {
-                for sym in self.alphabet.iter() {
-                    let s1 = self.delta.get_copy(&(i, *sym));
+                for sym in d1.alphabet.iter() {
+                    let s1 = d1.delta.get_copy(&(i, *sym));
                     let s2 = d2.delta.get_copy(&(j, *sym));
                     let curr_s = state_map.get_copy(&(i,j));
                     let new_s = state_map.get_copy(&(s1, s2));
@@ -175,11 +140,11 @@ impl DFA {
             }
         }
 
-        DFA {accept: accept,
-             start: start,
-             delta: trns_fn,
-             alphabet: self.alphabet.clone(),
-             num_states: num_states}
+        Some(DFA {accept: accept,
+                  start: start,
+                  delta: trns_fn,
+                  alphabet: d1.alphabet.clone(),
+                  num_states: num_states})
     }
 
     /// Returns the DFA accepting the complement of self.  
