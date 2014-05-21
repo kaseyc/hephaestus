@@ -74,9 +74,9 @@ impl DFA {
         }
 
         Ok(DFA{
-            accept: accept.clone(), 
+            accept: accept, 
             start: start,
-            alphabet: alphabet.clone(),
+            alphabet: alphabet,
             delta: trns_fn,
             num_states: num_states
         })
@@ -87,7 +87,7 @@ impl DFA {
     /// Return a new DFA representing the union of the inputs.  
     /// The union accepts any string that either input DFA would accept.  
     /// Both DFAs mus accept the same alphabet.  
-    pub fn union (&self, d2: DFA) -> DFA {
+    pub fn union (&self, d2: &DFA) -> DFA {
 
         // CHECK ALPHABET
         let num_states = self.num_states * d2.num_states;
@@ -137,7 +137,7 @@ impl DFA {
 
     /// Return a DFA representing the intersection of the inputs.  
     /// Accepts all strings accepted by both input DFAs.  
-    pub fn intersection(&self, d2: DFA) -> DFA {
+    pub fn intersect(&self, d2: &DFA) -> DFA {
         let num_states = self.num_states * d2.num_states;
         let mut state_map = HashMap::with_capacity(num_states);
         let mut count: uint = 0;
