@@ -99,7 +99,12 @@ impl DFA {
     //This is the basis for both union and intersection.
     fn dfa_product(d1: &DFA, d2: &DFA, f: |bool, bool| -> bool) -> Option<DFA> {
         //Check that the DFAs have matching alphabets
-        if d1.alphabet != d2.alphabet {
+        //To do this, we need to clone and sort :(
+        let a1 = d1.alphabet.clone();
+        let a2 = d2.alphabet.clone();
+        a1.sort();
+        a2.sort();
+        if a1 != a2 {
             return None
         }
 
