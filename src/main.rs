@@ -44,7 +44,7 @@ fn main() {
     println!("{}", u);
 
     //Run some strings
-    let strings = vec!("0", "0100", "001", "1", "000000", "", "1111111111");
+    let strings = vec!("a", "0100", "001", "1", "000000", "", "1111111111");
 
     println!("UNION\n");
     for string in strings.iter() {

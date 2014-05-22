@@ -100,8 +100,8 @@ impl DFA {
     fn dfa_product(d1: &DFA, d2: &DFA, f: |bool, bool| -> bool) -> Option<DFA> {
         //Check that the DFAs have matching alphabets
         //To do this, we need to clone and sort :(
-        let a1 = d1.alphabet.clone();
-        let a2 = d2.alphabet.clone();
+        let mut a1 = d1.alphabet.clone();
+        let mut a2 = d2.alphabet.clone();
         a1.sort();
         a2.sort();
         if a1 != a2 {
@@ -174,11 +174,10 @@ impl Run for DFA {
 
         // Compute the transition for each char in string
         for sym in string.chars() { 
-            if !self.alphabet.contains(&sym) {
-                return None;
-            }
-
-            curr_state = self.delta.get_copy(&(curr_state, sym));
+             match self.delta.find_copy(&(curr_state, sym)) {
+                Some(v) => curr_state = v,
+                None => return None
+             }
         }
 
         Some(self.accept.contains(&curr_state)) 
