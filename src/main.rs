@@ -1,11 +1,53 @@
 extern crate hephaestus;
 
-use hephaestus::{Run,DFA};
+use hephaestus::{Run,NFA};
 
 fn main() {
     let q = 2;
     let sigma = vec!('0', '1');
 
+    let d1 = vec!((0, '0', 1),
+                  (1, '1', 1));
+
+    let d2 = vec!((0, '_', 1),
+                  (1, '_', 0));
+
+    let q0 = 0;
+    
+    let f: Vec<uint> = vec!(1);
+
+    let nfa1 = match NFA::new(q, sigma.clone(), d1, q0, f.clone()) {
+        Ok(x) => x,
+        Err(_) => fail!()
+    };
+
+    let nfa2 = match NFA::new(q, sigma.clone(), d2, q0, f.clone()) {
+        Ok(x) => x,
+        Err(_) => fail!()
+    };
+
+    let strings = vec!("0", "01", "", "10", "11", "1");
+
+    println!("NFA 1\n");
+    for string in strings.iter() {
+        match nfa1.run(*string) {
+            Some(s) => println!("String: \"{}\", Result: {}\n", *string, s),
+            None => println!("String: \"{}\", Result: Invalid\n", *string)
+        }
+    }
+
+    println!("NFA 2\n");
+    for string in strings.iter() {
+        match nfa2.run(*string) {
+            Some(s) => println!("String: \"{}\", Result: {}\n", *string, s),
+            None => println!("String: \"{}\", Result: Invalid\n", *string)
+        }
+    }
+
+    println!("{}", nfa2);
+
+
+/*
     //Strings of all 0s
     let delta1 = vec!((0, '0', 0),
                       (0, '1', 1),
@@ -69,4 +111,5 @@ fn main() {
             None => println!("String: \"{}\", Result: Invalid\n", *string)
         }
     }
+    */
 }

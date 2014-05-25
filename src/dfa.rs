@@ -11,10 +11,6 @@ pub struct DFA {
     num_states: uint
 }
 
-/// A 3-tuple representing a state transition.<br>
-/// It has the form: **(current state, symbol, next state)**
-pub type Transition = (uint, char, uint);
-
 impl DFA {
     /// Creates a DFA
     pub fn new(
