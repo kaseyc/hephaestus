@@ -6,7 +6,10 @@
 extern crate collections;
 
 pub use DFA = dfa::DFA;
-pub use DFATransition = dfa::DFATransition;
+pub use NFA = nfa::NFA;
+/// A 3-tuple representing a state transition.<br>
+/// It has the form: **(current state, symbol, next state)**
+pub use Transtion = (uint, char, uint);
 
 /// Basic trait abstracting over all automata.  
 /// Checks if an automaton accepts a given string.

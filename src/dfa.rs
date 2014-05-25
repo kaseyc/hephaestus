@@ -1,6 +1,6 @@
 use collections::{HashSet, HashMap};
 use std::fmt;
-use super::Run;
+use super::{Run, Transition};
 
 /// Deterministic Finite Automata
 pub struct DFA {
@@ -13,14 +13,14 @@ pub struct DFA {
 
 /// A 3-tuple representing a state transition.<br>
 /// It has the form: **(current state, symbol, next state)**
-pub type DFATransition = (uint, char, uint);
+pub type Transition = (uint, char, uint);
 
 impl DFA {
     /// Creates a DFA
     pub fn new(
         num_states: uint,
         alphabet: Vec<char>,
-        transitions: Vec<DFATransition>,
+        transitions: Vec<Transition>,
         start: uint,
         accept: Vec<uint>
     ) -> Result<DFA, ~str> {
