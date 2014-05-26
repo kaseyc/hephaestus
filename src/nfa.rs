@@ -6,8 +6,11 @@ use super::{Run, Transition};
 /// Nondeterministic Finite Automaton.
 ///
 /// Similar in principle to a DFA except that an NFA can have 0 or
-/// multiple transitions on an input symbol, and can transition
-/// on the empty string (signified by '_').
+/// more transitions on an input symbol, and can transition
+/// on the empty string (signified by '_'). They are equivalent to DFAs in what
+/// their computational power.
+///
+/// An NFA accepts a string if **any** path makes it end up in an accept state.
 pub struct NFA {
     start: uint,
     alphabet: Vec<char>,
@@ -19,7 +22,7 @@ pub struct NFA {
 impl NFA {
     /// Builds an NFA.
     ///
-    /// Returns an Error if '_' is included in the alphabet or
+    /// Returns an Err if '_' is included in the alphabet or
     /// if a transition contains a state or symbol that does not exist.
     pub fn new(
         num_states: uint,

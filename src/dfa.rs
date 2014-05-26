@@ -2,7 +2,18 @@ use collections::{HashSet, HashMap};
 use std::fmt;
 use super::{Run, Transition};
 
+
 /// Deterministic Finite Automata
+///
+/// A DFA is comprised of a set of states and an alphabet
+/// of symbols. Each state has a transition from itself to
+/// some other state for each symbol in the alphabet. 
+///
+/// A DFA executes an input string by starting from the start state
+/// and reading the string one symbol at a time. For each symbol, it
+/// chages states based on the specified transitions.
+/// A DFA "accepts" a string if it ends in any accept state after reading
+/// the entire input.
 pub struct DFA {
     start: uint,
     alphabet: Vec<char>,
@@ -12,7 +23,11 @@ pub struct DFA {
 }
 
 impl DFA {
-    /// Creates a DFA
+    /// Creates a new DFA
+    ///
+    /// Returns an Err if there is a transition on a state or symbol that
+    /// does not exist, or if there is not **exactly** one transition for each
+    /// combination of state and input symbol.
     pub fn new(
         num_states: uint,
         alphabet: &Vec<char>,
@@ -78,15 +93,18 @@ impl DFA {
         })
     }
 
-    /// Return a new DFA representing the union of the inputs.  
-    /// The union accepts any string that either input DFA would accept.  
-    /// Both DFAs mus accept the same alphabet.  
+    /// Return a new DFA recognizing the union of the two inputs.  
+    /// The union accepts any string that either input DFA would accept. 
+    ///
+    /// Returns None if the DFAs do not use the same alphabet.
     pub fn union (&self, d2: &DFA) -> Option<DFA> {
         DFA::dfa_product(self, d2, |x, y| { x || y })
     }
 
     /// Return a DFA representing the intersection of the inputs.  
-    /// Accepts all strings accepted by both input DFAs.  
+    /// Accepts all strings accepted by both input DFAs.
+    ///
+    /// Returns None if the DFAs do not use the same alphabet.
     pub fn intersect(&self, d2: &DFA) -> Option<DFA> {
         DFA::dfa_product(self, d2, |x, y| { x && y })
     }
@@ -148,8 +166,9 @@ impl DFA {
                   num_states: num_states})
     }
 
-    /// Returns the DFA accepting the complement of self.  
-    /// It accepts all strings over self's alphabet that self rejects and vice versa
+    /// Returns a DFA accepting the complement of self. 
+    ///
+    /// It accepts all strings over self's alphabet that self rejects and vice versa.
     pub fn complement(&self) -> DFA {
         let all_states: Vec<uint> = range(0, self.num_states).collect();
         let accept: Vec<uint> = all_states.move_iter().filter(|x| !self.accept.contains(x)).collect();
