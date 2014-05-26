@@ -43,12 +43,12 @@ impl NFA {
             }
 
             if curr >= num_states {
-                return Err(format!("In transition: ({}, '{}') -> {}: State `{}`\
+                return Err(format!("In transition: ({}, '{}') -> {}: State `{}` \
                                     does not exist", curr, sym, next, curr));
             }
 
             if next >= num_states {
-                return Err(format!("In transition: ({}, '{}') -> {}: State `{}`\
+                return Err(format!("In transition: ({}, '{}') -> {}: State `{}` \
                                     does not exist", curr, sym, next, next));
             }
 
@@ -56,7 +56,7 @@ impl NFA {
                 //If the BitvSet exists, add next to it
                 |_, old, new| { old.insert(new); }, 
 
-                //If no match founf, create a new BitvSet and add it
+                //If no match found, create a new BitvSet and add it
                 |_, v| {
                     let mut bv = BitvSet::new();
                     bv.insert(v);
@@ -150,5 +150,45 @@ impl fmt::Show for NFA {
           try!(write!(f, "  ({}, '{}') -> {}\n", curr, sym, next.iter().collect::<Vec<uint>>()));
         }
         Ok(())
+    }
+}
+
+//Unit tests
+
+#[cfg(test)]
+mod tests {
+    use collections::bitv::BitvSet;
+    use collections::HashMap;
+    use super::epsilons;
+
+    #[test]
+    fn computes_all_epsilons() {
+        let mut hash: HashMap<(uint, char), BitvSet> = HashMap::new();
+        let mut curr = BitvSet::new();
+        let mut expected = BitvSet::new();
+
+        curr.insert(1);
+
+        for i in range(0,5) {
+            expected.insert(i as uint);
+        }
+
+        let trns = vec!((1,2), (1,0), (0, 3), (2, 4), (5, 6));
+        for &(k, v) in trns.iter() {
+            hash.find_with_or_insert_with((k, '_'), v,
+                |_, old, new| { old.insert(new); }, 
+                |_, v| {
+                    let mut bv = BitvSet::new();
+                    bv.insert(v);
+                    bv }
+            );
+        }
+
+        epsilons(&mut curr, &hash);
+
+        //assert_eq! won't work here as there is no implementation of Show for BitvSet
+        if curr != expected{
+            fail!();
+        }
     }
 }

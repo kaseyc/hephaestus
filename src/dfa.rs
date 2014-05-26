@@ -50,12 +50,12 @@ impl DFA {
             }
 
             if curr >= num_states {
-                return Err(format!("In transition: ({}, '{}') -> {}: State `{}`\
+                return Err(format!("In transition: ({}, '{}') -> {}: State `{}` \
                                     does not exist", curr, sym, next, curr));
             }
 
             if next >= num_states {
-                return Err(format!("In transition: ({}, '{}') -> {}: State `{}`\
+                return Err(format!("In transition: ({}, '{}') -> {}: State `{}` \
                                     does not exist", curr, sym, next, next));
             }
 
@@ -65,7 +65,7 @@ impl DFA {
             }
 
             else {
-                return Err(format!("Duplicate or missing transitions"));
+                return Err(format!("Duplicate transition: ({}, '{}') -> {}", curr, sym, next));
             }
         }
 
@@ -193,3 +193,31 @@ impl fmt::Show for DFA {
         Ok(())
     }
 }
+
+
+
+
+//Unit tests
+
+#[cfg(test)]
+mod tests {
+    use super::DFA;
+
+    #[test]
+    fn dfa_product_catches_different_alphabets() {
+        let a1 = vec!('0', '1');
+        let a2 = vec!('0', 'a');
+        let states = 1;
+        let start = 0;
+        let accept = vec!(0);
+        //Accepts strings of only zeros
+        let t1 = vec!((0, '0', 0), (0, '1', 0));
+        let t2 = vec!((0, '0', 0), (0, 'a', 0));
+
+        let dfa1 = DFA::new(states, &a1, &t1, start, &accept).unwrap();
+        let dfa2 = DFA::new(states, &a2, &t2, start, &accept).unwrap();
+        let res = DFA::dfa_product(&dfa1, &dfa2, |_, _| { false });
+
+        assert_eq!(res.is_none(), true);
+    }
+} 
