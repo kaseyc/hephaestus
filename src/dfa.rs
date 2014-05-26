@@ -15,10 +15,10 @@ impl DFA {
     /// Creates a DFA
     pub fn new(
         num_states: uint,
-        alphabet: Vec<char>,
-        transitions: Vec<Transition>,
+        alphabet: &Vec<char>,
+        transitions: &Vec<Transition>,
         start: uint,
-        accept: Vec<uint>
+        accept: &Vec<uint>
     ) -> Result<DFA, ~str> {
 
         let dfa_size = num_states * alphabet.len();
@@ -70,9 +70,9 @@ impl DFA {
         }
 
         Ok(DFA{
-            accept: accept, 
+            accept: accept.clone(), 
             start: start,
-            alphabet: alphabet,
+            alphabet: alphabet.clone(),
             delta: trns_fn,
             num_states: num_states
         })

@@ -23,10 +23,10 @@ impl NFA {
     /// if a transition contains a state or symbol that does not exist.
     pub fn new(
         num_states: uint,
-        alphabet: Vec<char>,
-        transitions: Vec<Transition>,
+        alphabet: &Vec<char>,
+        transitions: &Vec<Transition>,
         start: uint,
-        accept: Vec<uint>
+        accept: &Vec<uint>
     ) -> Result<NFA, ~str> {
 
 
@@ -65,9 +65,9 @@ impl NFA {
         }
 
         Ok(NFA{
-            accept: accept, 
+            accept: accept.clone(), 
             start: start,
-            alphabet: alphabet,
+            alphabet: alphabet.clone(),
             delta: trns_fn,
             num_states: num_states
         })
