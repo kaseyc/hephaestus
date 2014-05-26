@@ -35,6 +35,7 @@ as the creator of the automatons, matches the aim of the library.
 Thanks to [Harrison Liddiard](https://github.com/liddiard) for coming up with the name.
 
 Examples:
+-------
 ```
 extern crate hephaestus;
 use hephaestus::{DFA, Run, NFA};
@@ -59,7 +60,7 @@ let t2 = vec!((0, 'a', 1),
 			  (1, 'a', 2), (1, 'b', 1),
 			  (2, 'a', 3), (2, 'b', 2));
 
-let nfa = NFA::new(n2, &a, &t2, startm &accept2).unwrap();
+let nfa = NFA::new(n2, &a, &t2, start, &accept2).unwrap();
 nfa.run("aaa");     //true
 nfa.run("abbbaba"); //true
 nfa.run("baba");    //false
