@@ -34,7 +34,7 @@ impl DFA {
         transitions: &Vec<Transition>,
         start: uint,
         accept: &Vec<uint>
-    ) -> Result<DFA, ~str> {
+    ) -> Result<DFA, String> {
 
         let dfa_size = num_states * alphabet.len();
 

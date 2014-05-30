@@ -5,7 +5,7 @@ Automata for Rust
 
 
 ###Rust Version
-rustc 0.11.0-pre-nightly (6291955 2014-05-19 23:41:20 -0700)
+rustc 0.11.0-pre-nightly (25951b2 2014-05-30 00:31:44 -0700)
 
 Progress
 ======

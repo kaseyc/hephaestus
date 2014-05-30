@@ -30,7 +30,7 @@ impl NFA {
         transitions: &Vec<Transition>,
         start: uint,
         accept: &Vec<uint>
-    ) -> Result<NFA, ~str> {
+    ) -> Result<NFA, String> {
 
 
         let mut trns_fn: HashMap<(uint, char), BitvSet> = HashMap::with_capacity(transitions.len());
