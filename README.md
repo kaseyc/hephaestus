@@ -46,7 +46,7 @@ let a = vec!('a', 'b');
 let accept1 = vec!(0);
 let start = 0;
 let t1 = vec!((0, 'a', 1), (0, 'b', 1),
-					   (1, 'a', 0), (1, 'b', 0));
+		 	  (1, 'a', 0), (1, 'b', 0));
 
 let dfa = DFA::new(n1, &a, &t1, start, &accept1).unwrap();
 dfa.run("");       //true
