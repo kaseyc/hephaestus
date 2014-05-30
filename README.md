@@ -35,8 +35,8 @@ as the creator of the automatons, matches the aim of the library.
 Thanks to [Harrison Liddiard](https://github.com/liddiard) for coming up with the name.
 
 Examples:
--------
-```
+
+```rust
 extern crate hephaestus;
 use hephaestus::{DFA, Run, NFA};
 

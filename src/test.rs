@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 extern crate hephaestus;
 
 use hephaestus::{DFA, Run, NFA};
