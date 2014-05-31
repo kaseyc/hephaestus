@@ -188,6 +188,40 @@ fn dfa_intersection_works() {
 	}
 }
 
+#[test]
+fn dfa_minimization() {
+	let n = 4;
+	let start = 0;
+	let a = vec!('a', 'b');
+    let accept = vec!(0, 1, 3);
+    let t = vec!((0, 'a', 1), (0, 'b', 1),
+                 (1, 'a', 0), (1, 'b', 0),
+                 (2, 'a', 2), (2, 'b', 0),
+                 (3, 'a', 2), (3, 'b', 1));
+
+    let dfa = DFA::new(n, &a, &t, start, &accept).unwrap().minimize().unwrap();
+
+    let expected = "Alphabet: [a, b]\nStart State: 0\nAccept States: {0}\nTransitions:\n  (0, 'a') -> 0\n  (0, 'b') -> 0\n";
+
+    assert_eq!(format!("{}", dfa).as_slice(), expected);
+}
+
+#[test]
+fn dfa_minimum_complement_intersection() {
+	let n = 2;
+    let a = vec!('a', 'b');
+    let accept = vec!(0, 1);
+    let start = 0;
+    let t = vec!((0, 'a', 1), (0, 'b', 1),
+                 (1, 'a', 0), (1, 'b', 0));
+
+    let d1 = DFA::new(n, &a, &t, start, &accept).unwrap();
+    let d2 = d1.complement().intersect(&d1).unwrap().minimize().unwrap();
+
+    let expected = "Alphabet: [a, b]\nStart State: 0\nAccept States: {}\nTransitions:\n  (0, 'a') -> 0\n  (0, 'b') -> 0\n";
+    assert_eq!(format!("{}", d2).as_slice(), expected);
+}
+
 
 ///////////////////////////
 ////  NFA Unit Tests  /////

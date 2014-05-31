@@ -15,7 +15,7 @@ pub struct NFA {
     start: uint,
     alphabet: Vec<char>,
     delta: HashMap<(uint, char), BitvSet>,
-    accept: Vec<uint>,
+    accept:BitvSet,
     num_states: uint
 }
 
@@ -31,7 +31,6 @@ impl NFA {
         start: uint,
         accept: &Vec<uint>
     ) -> Result<NFA, String> {
-
 
         let mut trns_fn: HashMap<(uint, char), BitvSet> = HashMap::with_capacity(transitions.len());
 
@@ -67,8 +66,13 @@ impl NFA {
             );
         }
 
+        let mut accept_bv = BitvSet::new();
+        for i in accept.iter() {
+            accept_bv.insert(*i);
+        }
+
         Ok(NFA{
-            accept: accept.clone(), 
+            accept: accept_bv, 
             start: start,
             alphabet: alphabet.clone(),
             delta: trns_fn,
@@ -138,7 +142,7 @@ impl Run for NFA {
             epsilons(&mut curr_states, &self.delta);
         }
 
-        Some(self.accept.iter().any(|x| curr_states.contains(x)))
+        Some(self.accept.iter().any(|x| curr_states.contains(&x)))
     }
 }
 
@@ -149,8 +153,16 @@ impl fmt::Show for NFA {
         try!(write!(f, "Accept States: {}\n", self.accept));
         try!(write!(f, "Transitions: \n"));
 
-        for (&(curr, sym), next) in self.delta.iter() {
-          try!(write!(f, "  ({}, '{}') -> {}\n", curr, sym, next.iter().collect::<Vec<uint>>()));
+        let mut temp = vec!();
+        for &(curr, sym) in self.delta.keys() {
+            temp.push((curr, sym));
+        }
+
+        temp.sort();
+
+        for &(curr, sym) in temp.iter() {
+            let next = self.delta.get(&(curr, sym));
+            try!(write!(f, "  ({}, '{}') -> {}\n", curr, sym, next));
         }
         Ok(())
     }

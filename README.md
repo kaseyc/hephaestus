@@ -4,13 +4,14 @@ Hephaestus
 Automata for Rust
 
 
-###Rust Version
-rustc 0.11.0-pre-nightly (25951b2 2014-05-30 00:31:44 -0700)
+Rust Version
+------------
+rustc 0.11.0-pre-nightly (faa7ba7 2014-05-31 01:06:40 -0700)
 
 Progress
-======
-* Deterministic Finite Automata: Implemented  
-* Non-deterministic Finite Automata: In progress  
+--------
+* Deterministic Finite Automata: Done  
+* Non-deterministic Finite Automata: Done 
 * DFA Transformations (Complement, union, intersection): Done
 * NFA to DFA compilation and NFA transformations: Up next
 * Build NFA from regex: Maybe
@@ -35,6 +36,7 @@ as the creator of the automatons, matches the aim of the library.
 Thanks to [Harrison Liddiard](https://github.com/liddiard) for coming up with the name.
 
 Examples:
+---------
 
 ```rust
 extern crate hephaestus;

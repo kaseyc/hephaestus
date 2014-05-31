@@ -1,7 +1,7 @@
 use collections::{HashSet, HashMap};
+use collections::bitv::BitvSet;
 use std::fmt;
 use super::{Run, Transition};
-
 
 /// Deterministic Finite Automata
 ///
@@ -18,9 +18,18 @@ pub struct DFA {
     start: uint,
     alphabet: Vec<char>,
     delta: HashMap<(uint, char), uint>,
-    accept: Vec<uint>,
+    accept: BitvSet,
     num_states: uint
 }
+
+
+macro_rules! push_not_empty(
+        ($vec:ident : $set:expr) => (
+            if !$set.is_empty() {
+                $vec.push($set);
+            }
+        );
+    )
 
 impl DFA {
     /// Creates a new DFA
@@ -41,6 +50,10 @@ impl DFA {
         // Check that DFA has the proper number of transitions
         if transitions.len() != dfa_size {
             return Err(format!("Incorrect number of transitions"));
+        }
+
+        if start >= num_states {
+            return Err(format!("Invalid start state"));
         }
 
         let mut trns_fn = HashMap::with_capacity(dfa_size);
@@ -84,8 +97,13 @@ impl DFA {
             }
         }
 
+        let mut accept_states = BitvSet::new();
+        for i in accept.iter() {
+            accept_states.insert(*i);
+        }
+
         Ok(DFA{
-            accept: accept.clone(), 
+            accept: accept_states, 
             start: start,
             alphabet: alphabet.clone(),
             delta: trns_fn,
@@ -125,7 +143,7 @@ impl DFA {
         let num_states = d1.num_states * d2.num_states;
         let mut state_map = HashMap::with_capacity(num_states);
         let mut count: uint = 0;
-        let mut accept: Vec<uint> = Vec::new();
+        let mut accept = BitvSet::new();
 
         //Take the cartesian product of the states in both DFAs and map them to integers
         //Additionally, build the list of accept states
@@ -133,7 +151,7 @@ impl DFA {
             for j in range (0, d2.num_states) {
                 state_map.insert((i, j), count);
                 if f(d1.accept.contains(&i), d2.accept.contains(&j)) {
-                    accept.push(count);
+                    accept.insert(count);
                 }
 
                 count += 1;
@@ -142,8 +160,7 @@ impl DFA {
 
         let start: uint = state_map.get_copy(&(d1.start, d2.start));
 
-        //Build the transition function
-        //Assumes both d1 and d2 are valid DFAs
+        //Build the transitions
         let trns_size = num_states * d1.alphabet.len();
         let mut trns_fn = HashMap::with_capacity(trns_size);
 
@@ -172,8 +189,13 @@ impl DFA {
     pub fn complement(&self) -> DFA {
         let all_states: Vec<uint> = range(0, self.num_states).collect();
         let accept: Vec<uint> = all_states.move_iter().filter(|x| !self.accept.contains(x)).collect();
+        
+        let mut bv = BitvSet::new();
+        for i in accept.iter() {
+            bv.insert(*i);
+        }
 
-        DFA { accept: accept,
+        DFA { accept: bv,
               start: self.start,
               alphabet: self.alphabet.clone(),
               delta: self.delta.clone(),
@@ -181,6 +203,138 @@ impl DFA {
         }
     }
 
+    /// Returns the minimal DFA (smallest number of states) that accepts the same language.
+    /// 
+    /// Implements [Hopcroft's algorithm](http://en.wikipedia.org/wiki/DFA_minimization#Hopcroft.27s_algorithm).
+    pub fn minimize(&self) -> Result<DFA, String> {
+        //Remove unreachable states
+        let mut reachable = BitvSet::new();
+        reachable.insert(self.start);
+        let mut new_states = BitvSet::new();
+        new_states.insert(self.start);
+
+        loop {
+            let mut temp = BitvSet::new();
+            for elem in new_states.iter() {
+                for sym in self.alphabet.iter() {
+                    temp.insert(self.delta.get_copy(&(elem, *sym)));
+                }
+            }
+
+            temp.difference_with(&reachable);
+            reachable.union_with(&temp);
+            new_states = temp;
+
+            if new_states.is_empty() {
+                break;
+            }
+        }
+
+        //Minimize with Hopcroft's
+        let mut partitions = vec!();
+        let mut w = vec!();
+
+        let mut non_accept = reachable.clone();
+        non_accept.difference_with(&self.accept);
+
+        let mut reachable_accept = self.accept.clone();
+        reachable_accept.intersect_with(&reachable);
+
+        partitions.push(reachable_accept.clone());
+        partitions.push(non_accept);
+        w.push(reachable_accept);
+
+        //Loop until w is empty
+        loop {
+            let set = match w.pop() {
+                Some(s) => s,
+                None => break
+            };
+
+            for sym in self.alphabet.iter() {
+                let mut x = BitvSet::new();
+                for s in reachable.iter() {
+                    match self.delta.find(&(s, *sym)) {
+                        Some(v) if set.contains(v) => { x.insert(*v); },
+                        _ => {}
+                    }
+                }
+
+                let mut new_p = vec!();
+
+                for y in partitions.move_iter() {
+                    let mut intersection = y.clone();
+                    intersection.intersect_with(&x);
+                    if intersection.is_empty() {
+                        push_not_empty!(new_p : y);
+                        continue;
+                    }
+
+                    let mut difference = y.clone();
+                    difference.difference_with(&x);
+                    if difference.is_empty() {
+                        push_not_empty!(new_p : y);
+                        continue;
+                    }
+
+                    push_not_empty!(new_p : intersection.clone());
+                    push_not_empty!(new_p : difference.clone());
+
+                    if w.contains(&y) {
+                        w.push(intersection);
+                        w.push(difference);
+                    }
+
+                    else {
+                        if intersection.len() <= difference.len() {
+                            w.push(intersection);
+                        }
+
+                        else {
+                            w.push(difference);
+                        }
+                    }
+                }
+
+                partitions = new_p;
+            }
+        }
+
+        //partitions now holds all the equivalence classes
+        //Construct a DFA with 1 state for each set in partitions
+        //Use the index of the set as its state number
+        let mut transitions = vec!();
+        let mut start = 0; //This will be overwritten
+        let mut accept = vec!();
+        for (idx, p) in partitions.iter().enumerate() {
+            //get first element of p
+            let elem = match p.iter().next() {
+                Some(e) => e,
+                None => continue
+            };
+            for sym in self.alphabet.iter() {
+                let new_state = self.delta.get(&(elem, *sym));
+                for (new_idx, s) in partitions.iter().enumerate() {
+                    if s.contains(new_state) {
+                        transitions.push((idx, *sym, new_idx));
+                        break;
+                    }
+                }
+            }
+
+            if p.contains(&self.start) {
+                start = idx;
+            }
+
+            for i in self.accept.iter() {
+                if p.contains(&i) {
+                    accept.push(idx);
+                }
+            }
+        }
+
+        DFA::new(partitions.len(), &self.alphabet, &transitions, start, &accept)
+    }
 }
 
 impl Run for DFA {
@@ -204,10 +358,16 @@ impl fmt::Show for DFA {
         try!(write!(f, "Alphabet: {}\n", self.alphabet));
         try!(write!(f, "Start State: {}\n", self.start));
         try!(write!(f, "Accept States: {}\n", self.accept));
-        try!(write!(f, "Transitions: \n"));
+        try!(write!(f, "Transitions:\n"));
 
+        let mut temp = vec!();
         for (&(curr, sym), next) in self.delta.iter() {
-          try!(write!(f, "  ({}, '{}') -> {}\n", curr, sym, next));
+            temp.push((curr, sym, next));
+        }
+
+        temp.sort();
+        for &(curr, sym, next) in temp.iter() {
+            try!(write!(f, "  ({}, '{}') -> {}\n", curr, sym, next));
         }
         Ok(())
     }
