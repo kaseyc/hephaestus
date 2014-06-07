@@ -222,6 +222,22 @@ fn dfa_minimum_complement_intersection() {
     assert_eq!(format!("{}", d2).as_slice(), expected);
 }
 
+#[test]
+fn dfa_equality() {
+	let n = 1;
+	let a = vec!('a', 'b');
+	let acc1 = vec!(0);
+	let acc2 = vec!();
+	let start = 0;
+	let t = vec!((0, 'a', 0), (0, 'b', 0));
+
+	let all = DFA::new(n, &a, &t, start, &acc1).unwrap(); //Accepts all strings
+	let none = DFA::new(n, &a, &t, start, &acc2).unwrap(); //Accepts no strings
+
+	assert!(none != all && all != none);
+	assert_eq!(none, all.complement());
+}
+
 
 ///////////////////////////
 ////  NFA Unit Tests  /////

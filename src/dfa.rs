@@ -1,6 +1,7 @@
 use std::collections::hashmap::{HashSet, HashMap};
 use std::collections::bitv::BitvSet;
 use std::fmt;
+use std::cmp::PartialEq;
 use super::{Run, Transition};
 
 /// Deterministic Finite Automata
@@ -194,11 +195,7 @@ impl DFA {
         }
     }
 
-    /// Returns the minimal DFA (smallest number of states) that accepts the same language.
-    /// 
-    /// Implements [Hopcroft's algorithm](http://en.wikipedia.org/wiki/DFA_minimization#Hopcroft.27s_algorithm).
-    pub fn minimize(&self) -> Result<DFA, String> {
-        //Remove unreachable states
+    fn reachable_states(&self) -> BitvSet {
         let mut reachable = BitvSet::new();
         reachable.insert(self.start);
         let mut new_states = BitvSet::new();
@@ -220,6 +217,16 @@ impl DFA {
                 break;
             }
         }
+
+        return reachable;
+    }
+
+    /// Returns the minimal DFA (smallest number of states) that accepts the same language.
+    /// 
+    /// Implements [Hopcroft's algorithm](http://en.wikipedia.org/wiki/DFA_minimization#Hopcroft.27s_algorithm).
+    pub fn minimize(&self) -> Result<DFA, String> {
+        //Remove unreachable states
+        let reachable = self.reachable_states();
 
         //Minimize with Hopcroft's
         let mut partitions = vec!();
@@ -329,6 +336,17 @@ impl DFA {
 
         DFA::new(partitions.len(), &self.alphabet, &transitions, start, &accept)
     }
+
+    /// Return true if there are no reachable accept states
+    fn accepts_none(&self) -> bool {
+        if self.accept.is_empty() {
+            return true;
+        }
+
+        let mut reachable = self.reachable_states();
+        reachable.intersect_with(&self.accept);
+        return reachable.is_empty();
+    }
 }
 
 impl Run for DFA {
@@ -344,6 +362,27 @@ impl Run for DFA {
         }
 
         Some(self.accept.contains(&curr_state)) 
+    }
+}
+
+impl PartialEq for DFA {
+    /// Check that (self intersect ~other) union (~self intersect other)
+    /// accepts the empty language 
+    fn eq(&self, other: &DFA) -> bool {
+        let eq1 = match self.intersect(&other.complement()) {
+            None => { return false },
+            Some(dfa) => dfa
+        };
+
+        let eq2 = match other.intersect(&self.complement()) {
+            None => { return false },
+            Some(dfa) => dfa
+        };
+
+        match eq1.union(&eq2) {
+            None => false,
+            Some(dfa) => dfa.accepts_none()
+        }
     }
 }
 
