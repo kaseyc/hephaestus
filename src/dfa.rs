@@ -221,10 +221,8 @@ impl DFA {
         return reachable;
     }
 
-    /// Returns the minimal DFA (smallest number of states) that accepts the same language.
-    /// 
-    /// Implements [Hopcroft's algorithm](http://en.wikipedia.org/wiki/DFA_minimization#Hopcroft.27s_algorithm).
-    pub fn minimize(&self) -> Result<DFA, String> {
+    //Split states into partitions using Hopcroft's algorithm.
+    fn partition_states(&self) -> Vec<BitvSet> {
         //Remove unreachable states
         let reachable = self.reachable_states();
 
@@ -298,9 +296,15 @@ impl DFA {
             }
         }
 
-        //Remove empty paritions
-        partitions = partitions.move_iter().filter(|ref x| !x.is_empty()).collect();
+        //Remove empty paritions and return
+       partitions.move_iter().filter(|ref x| !x.is_empty()).collect()
+    }
 
+    /// Returns the minimal DFA (smallest number of states) that accepts the same language.
+    /// 
+    /// Implements [Hopcroft's algorithm](http://en.wikipedia.org/wiki/DFA_minimization#Hopcroft.27s_algorithm).
+    pub fn minimize(&self) -> Result<DFA, String> {
+        let partitions = self.partition_states();
         //partitions now holds all the equivalence classes
         //Construct a DFA with 1 state for each set in partitions
         //Use the index of the set as its state number
