@@ -1,5 +1,5 @@
-use collections::{HashSet, HashMap};
-use collections::bitv::BitvSet;
+use std::collections::hashmap::{HashSet, HashMap};
+use std::collections::bitv::BitvSet;
 use std::fmt;
 use super::{Run, Transition};
 
@@ -21,15 +21,6 @@ pub struct DFA {
     accept: BitvSet,
     num_states: uint
 }
-
-
-macro_rules! push_not_empty(
-        ($vec:ident : $set:expr) => (
-            if !$set.is_empty() {
-                $vec.push($set);
-            }
-        );
-    )
 
 impl DFA {
     /// Creates a new DFA
@@ -266,19 +257,19 @@ impl DFA {
                     let mut intersection = y.clone();
                     intersection.intersect_with(&x);
                     if intersection.is_empty() {
-                        push_not_empty!(new_p : y);
+                        new_p.push(y);
                         continue;
                     }
 
                     let mut difference = y.clone();
                     difference.difference_with(&x);
                     if difference.is_empty() {
-                        push_not_empty!(new_p : y);
+                        new_p.push(y);
                         continue;
                     }
 
-                    push_not_empty!(new_p : intersection.clone());
-                    push_not_empty!(new_p : difference.clone());
+                    new_p.push(intersection.clone());
+                    new_p.push(difference.clone());
 
                     if w.contains(&y) {
                         w.push(intersection);
@@ -299,6 +290,9 @@ impl DFA {
                 partitions = new_p;
             }
         }
+
+        //Remove empty paritions
+        partitions = partitions.move_iter().filter(|ref x| !x.is_empty()).collect();
 
         //partitions now holds all the equivalence classes
         //Construct a DFA with 1 state for each set in partitions

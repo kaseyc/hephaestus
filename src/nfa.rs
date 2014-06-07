@@ -1,5 +1,5 @@
-use collections::bitv::BitvSet;
-use collections::HashMap;
+use std::collections::bitv::BitvSet;
+use std::collections::hashmap::HashMap;
 use std::fmt;
 use super::{Run, Transition};
 
@@ -172,8 +172,8 @@ impl fmt::Show for NFA {
 
 #[cfg(test)]
 mod tests {
-    use collections::bitv::BitvSet;
-    use collections::HashMap;
+    use std::collections::bitv::BitvSet;
+    use std::collections::hashmap::HashMap;
     use super::epsilons;
 
     #[test]

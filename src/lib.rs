@@ -1,6 +1,5 @@
 #![crate_id = "hephaestus"]
 #![deny(missing_doc)]
-#![feature(macro_rules)]
 
 //! Implementations of various types of automata in Rust. <br>
 //! I was inspired to write this after taking CS 181 at UCLA.
