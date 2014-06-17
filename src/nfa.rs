@@ -118,7 +118,7 @@ impl Run for NFA {
         epsilons(&mut curr_states, &self.delta);
 
         for sym in input.chars() {
-            if sym != '_' && !self.alphabet.contains(&sym) {
+            if !self.alphabet.contains(&sym) {
                 return None;
             }
 
@@ -200,10 +200,6 @@ mod tests {
         }
 
         epsilons(&mut curr, &hash);
-
-        //assert_eq! won't work here as there is no implementation of Show for BitvSet
-        if curr != expected{
-            fail!();
-        }
+        assert_eq!(curr, expected);
     }
 }

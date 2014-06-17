@@ -294,6 +294,7 @@ fn nfa_catches_invalid_inputs() {
     let nfa = NFA::new(states, &alphabet, &t, start, &accept).unwrap();
 
     assert_eq!(nfa.run("a").is_none(), true);
+    assert_eq!(nfa.run("_").is_none(), true);
 }
 
 #[test]
