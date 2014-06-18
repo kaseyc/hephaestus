@@ -199,15 +199,17 @@ fn dfa_minimization() {
                  (2, 'a', 2), (2, 'b', 0),
                  (3, 'a', 2), (3, 'b', 1));
 
-    let dfa = DFA::new(n, &a, &t, start, &accept).unwrap().minimize().unwrap();
+    let mut dfa = DFA::new(n, &a, &t, start, &accept).unwrap();
+    dfa.minimize();
 
+    //We want to check the exact output, so equality won't work
     let expected = "Alphabet: [a, b]\nStart State: 0\nAccept States: {0}\nTransitions:\n  (0, 'a') -> 0\n  (0, 'b') -> 0\n";
 
     assert_eq!(format!("{}", dfa).as_slice(), expected);
 }
 
 #[test]
-fn dfa_minimum_complement_intersection() {
+fn dfa_complement_intersection_is_empty() {
 	let n = 2;
     let a = vec!('a', 'b');
     let accept = vec!(0, 1);
@@ -216,10 +218,12 @@ fn dfa_minimum_complement_intersection() {
                  (1, 'a', 0), (1, 'b', 0));
 
     let d1 = DFA::new(n, &a, &t, start, &accept).unwrap();
-    let d2 = d1.complement().intersect(&d1).unwrap().minimize().unwrap();
+    let d2 = d1.complement().intersect(&d1).unwrap();
 
-    let expected = "Alphabet: [a, b]\nStart State: 0\nAccept States: {}\nTransitions:\n  (0, 'a') -> 0\n  (0, 'b') -> 0\n";
-    assert_eq!(format!("{}", d2).as_slice(), expected);
+    //let expected = "Alphabet: [a, b]\nStart State: 0\nAccept States: {}\nTransitions:\n  (0, 'a') -> 0\n  (0, 'b') -> 0\n";
+    let expected = DFA::new(1, &a, &vec!((0, 'a', 0), (0, 'b', 0)), 0, &vec!()).unwrap();
+    //assert_eq!(format!("{}", d2).as_slice(), expected);
+    assert_eq!(expected, d2);
 }
 
 #[test]

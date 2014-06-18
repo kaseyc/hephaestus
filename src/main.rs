@@ -42,6 +42,9 @@ fn main() {
                   (1, 'a', 0), (1, 'b', 0),
                   (2, 'a', 2), (2, 'b', 0));
 
-    let dfa2 = DFA::new(n3, &a, &t3, start, &accept3).unwrap().minimize().unwrap();
+    let mut dfa2 = DFA::new(n3, &a, &t3, start, &accept3).unwrap();
+    dfa2.minimize();
     println!("{}", dfa2);
+
+    println!("{}, {}", dfa2 == dfa, dfa2 == dfa2);
 }

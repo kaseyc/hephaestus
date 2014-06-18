@@ -15,6 +15,7 @@ use super::{Run, Transition};
 /// chages states based on the specified transitions.
 /// A DFA "accepts" a string if it ends in any accept state after reading
 /// the entire input.
+#[deriving(Clone)]
 pub struct DFA {
     start: uint,
     alphabet: Vec<char>,
@@ -36,6 +37,10 @@ impl DFA {
         start: uint,
         accept: &Vec<uint>
     ) -> Result<DFA, String> {
+
+        if num_states == 0 {
+            return Err(format!("Must contain at least one state"));
+        }
 
         let dfa_size = num_states * alphabet.len();
 
@@ -195,6 +200,8 @@ impl DFA {
         }
     }
 
+    //Returns a BitvSet containing all the states that are reachable by some path from the
+    //start state 
     fn reachable_states(&self) -> BitvSet {
         let mut reachable = BitvSet::new();
         reachable.insert(self.start);
@@ -296,49 +303,53 @@ impl DFA {
             }
         }
 
-        //Remove empty paritions and return
+        //Remove empty partitions and return
        partitions.move_iter().filter(|ref x| !x.is_empty()).collect()
     }
 
-    /// Returns the minimal DFA (smallest number of states) that accepts the same language.
+    /// Reduces the amount of states in-place to the minimum necessary to recognize the same language.
     /// 
     /// Implements [Hopcroft's algorithm](http://en.wikipedia.org/wiki/DFA_minimization#Hopcroft.27s_algorithm).
-    pub fn minimize(&self) -> Result<DFA, String> {
+    pub fn minimize(&mut self) {
         let partitions = self.partition_states();
         //partitions now holds all the equivalence classes
-        //Construct a DFA with 1 state for each set in partitions
+        //Build a new transition function with 1 state for each set in partitions
         //Use the index of the set as its state number
-        let mut transitions = vec!();
-        let mut start = 0; //This will be overwritten
-        let mut accept = vec!();
+        let mut transitions = HashMap::new();
+        let mut accept = BitvSet::new();
         for (idx, p) in partitions.iter().enumerate() {
             //get first element of p
             let elem = match p.iter().next() {
                 Some(e) => e,
-                None => continue
+                None => unreachable!() //There should be no empty partitions
             };
+
             for sym in self.alphabet.iter() {
                 let new_state = self.delta.get(&(elem, *sym));
                 for (new_idx, s) in partitions.iter().enumerate() {
                     if s.contains(new_state) {
-                        transitions.push((idx, *sym, new_idx));
+                        transitions.insert((idx, *sym), new_idx);//(idx, *sym, new_idx));
                         break;
                     }
                 }
             }
 
             if p.contains(&self.start) {
-                start = idx;
+                self.start = idx;
             }
 
             for i in self.accept.iter() {
                 if p.contains(&i) {
-                    accept.push(idx);
+                    accept.insert(idx);
+                    break;
                 }
             }
         }
 
-        DFA::new(partitions.len(), &self.alphabet, &transitions, start, &accept)
+        self.delta = transitions;
+        self.accept = accept;
+        self.num_states = partitions.len();
+        assert_eq!(self.delta.len(), self.alphabet.len() * partitions.len());
     }
 
     /// Return true if there are no reachable accept states
