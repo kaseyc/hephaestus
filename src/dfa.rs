@@ -380,6 +380,8 @@ impl Run for DFA {
     }
 }
 
+/// **Note**: Tests for equality in terms on the language recognized, not the actual states/transitions
+/// in the DFA.
 impl PartialEq for DFA {
     /// Check that (self intersect ~other) union (~self intersect other)
     /// accepts the empty language 
@@ -400,6 +402,8 @@ impl PartialEq for DFA {
         }
     }
 }
+
+impl Eq for DFA {}
 
 impl fmt::Show for DFA {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
