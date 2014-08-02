@@ -1,4 +1,4 @@
-#![crate_id = "hephaestus"]
+#![crate_name = "hephaestus"]
 #![deny(missing_doc)]
 
 //! Implementations of various types of automata in Rust. <br>

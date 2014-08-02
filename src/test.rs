@@ -1,4 +1,5 @@
 extern crate hephaestus;
+extern crate collections;
 
 use hephaestus::{DFA, Run, NFA};
 
@@ -300,7 +301,7 @@ fn nfa_catches_invalid_inputs() {
     assert_eq!(nfa.run("a").is_none(), true);
     assert_eq!(nfa.run("_").is_none(), true);
 }
-
+/*
 #[test]
 fn nfa_epsilon_transitions() {
 	let alphabet = vec!('0');
@@ -321,4 +322,4 @@ fn nfa_epsilon_transitions() {
     	Some(b) => assert_eq!(b, false),
     	None => fail!()
     }
-}
+}*/

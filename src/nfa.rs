@@ -2,6 +2,7 @@ use std::collections::bitv::BitvSet;
 use std::collections::hashmap::HashMap;
 use std::fmt;
 use super::{Run, Transition};
+use dfa;
 
 /// Nondeterministic Finite Automaton.
 ///
@@ -16,7 +17,6 @@ pub struct NFA {
     alphabet: Vec<char>,
     delta: HashMap<(uint, char), BitvSet>,
     accept:BitvSet,
-    num_states: uint
 }
 
 impl NFA {
@@ -36,6 +36,10 @@ impl NFA {
 
         if alphabet.contains(&'_') {
             return Err(format!("Alphabets cannot contain '_'"));
+        }
+
+        if num_states == 0 {
+            return Err(format!("Must contain at least one state"));
         }
 
         // Validate transitions and add them to the transition table
@@ -76,8 +80,20 @@ impl NFA {
             start: start,
             alphabet: alphabet.clone(),
             delta: trns_fn,
-            num_states: num_states
         })
+    }
+
+    /// Returns the DFA equivalent to self.
+    ///
+    /// This can cause an exponential blowup in size
+    /// (up to 2<sup>n</sup> states in the DFA for an NFA of size n).
+    pub fn to_dfa(&self) {
+        let mut state_map: HashMap<BitvSet, int> = HashMap::new();
+        //Add "blowup" state
+        state_map.insert(BitvSet::new(), 0);
+        let mut idx = 1i;
+
+        //Get new start state from epsilon expansion
     }
 }
 
@@ -101,6 +117,8 @@ fn epsilons(curr: &mut BitvSet, delta: &HashMap<(uint, char), BitvSet>) {
 
         curr.union_with(&next);
         next.clear();
+
+        println!("Loop");
     }
 }
 
@@ -144,6 +162,7 @@ impl Run for NFA {
 
         Some(self.accept.iter().any(|x| curr_states.contains(&x)))
     }
+
 }
 
 impl fmt::Show for NFA {
@@ -169,7 +188,7 @@ impl fmt::Show for NFA {
 }
 
 //Unit tests
-
+/*
 #[cfg(test)]
 mod tests {
     use std::collections::bitv::BitvSet;
@@ -184,7 +203,7 @@ mod tests {
 
         curr.insert(1);
 
-        for i in range(0,5) {
+        for i in range(0,5i) {
             expected.insert(i as uint);
         }
 
@@ -203,3 +222,4 @@ mod tests {
         assert_eq!(curr, expected);
     }
 }
+*/
