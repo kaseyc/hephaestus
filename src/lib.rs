@@ -1,12 +1,12 @@
-#![crate_id = "hephaestus"]
-#![deny(missing_doc)]
+#![crate_name = "hephaestus"]
+#![deny(missing_docs)]
 
 //! Implementations of various types of automata in Rust. <br>
 //! I was inspired to write this after taking CS 181 at UCLA.
 extern crate collections;
 
-pub use DFA = dfa::DFA;
-pub use NFA = nfa::NFA;
+pub use dfa::DFA as DFA;
+pub use nfa::NFA as NFA;
 
 /// A 3-tuple representing a state transition.
 ///

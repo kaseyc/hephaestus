@@ -1,5 +1,6 @@
-use std::collections::bitv::BitvSet;
-use std::collections::hashmap::HashMap;
+use std::collections::BitvSet;
+use std::collections::HashMap;
+use std::collections::hash_map::Entry::{Occupied,Vacant};
 use std::fmt;
 use super::{Run, Transition};
 
@@ -54,16 +55,17 @@ impl NFA {
                                     does not exist", curr, sym, next, next));
             }
 
-            trns_fn.find_with_or_insert_with((curr, sym), next,
+            match trns_fn.entry(&(curr, sym)) {
                 //If the BitvSet exists, add next to it
-                |_, old, new| { old.insert(new); }, 
-
+                Occupied(v) =>
+                { v.into_mut().insert(next); }
                 //If no match found, create a new BitvSet and add it
-                |_, v| {
-                    let mut bv = BitvSet::new();
-                    bv.insert(v);
-                    bv }
-            );
+                Vacant(v) => {
+                    let mut bv=BitvSet::new();
+                    bv.insert(next);
+                    v.insert(bv);
+                }
+            };
         }
 
         let mut accept_bv = BitvSet::new();
@@ -88,7 +90,7 @@ fn epsilons(curr: &mut BitvSet, delta: &HashMap<(uint, char), BitvSet>) {
     let mut next = BitvSet::new();
     loop {
         for i in curr.iter() {
-                match delta.find(&(i, '_')) {
+                match delta.get(&(i, '_')) {
                     None => {},
                     Some(bv) => next.union_with(bv)
                 }
@@ -124,7 +126,7 @@ impl Run for NFA {
 
             //Get transitions from the current input symbol
             for i in curr_states.iter() {
-                match self.delta.find(&(i, sym)) {
+                match self.delta.get(&(i, sym)) {
                     None => {},
                     Some(bv) => next_states.union_with(bv)
                 }
@@ -172,8 +174,9 @@ impl fmt::Show for NFA {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::bitv::BitvSet;
-    use std::collections::hashmap::HashMap;
+    use std::collections::BitvSet;
+    use std::collections::HashMap;
+    use std::collections::hash_map::Entry::{Occupied,Vacant};
     use super::epsilons;
 
     #[test]
@@ -190,13 +193,17 @@ mod tests {
 
         let trns = vec!((1,2), (1,0), (0, 3), (2, 4), (5, 6));
         for &(k, v) in trns.iter() {
-            hash.find_with_or_insert_with((k, '_'), v,
-                |_, old, new| { old.insert(new); }, 
-                |_, v| {
-                    let mut bv = BitvSet::new();
+            match hash.entry(&(k, '_')) {
+                //If the BitvSet exists, add next to it
+                Occupied(ent) =>
+                { ent.into_mut().insert(v); }
+                //If no match found, create a new BitvSet and add it
+                Vacant(ent) => {
+                    let mut bv=BitvSet::new();
                     bv.insert(v);
-                    bv }
-            );
+                    ent.insert(bv);
+                }
+            };
         }
 
         epsilons(&mut curr, &hash);

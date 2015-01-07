@@ -1,5 +1,5 @@
-use std::collections::hashmap::{HashSet, HashMap};
-use std::collections::bitv::BitvSet;
+use std::collections::{HashSet, HashMap};
+use std::collections::BitvSet;
 use std::fmt;
 use std::cmp::PartialEq;
 use super::{Run, Transition};
@@ -15,7 +15,7 @@ use super::{Run, Transition};
 /// chages states based on the specified transitions.
 /// A DFA "accepts" a string if it ends in any accept state after reading
 /// the entire input.
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct DFA {
     start: uint,
     alphabet: Vec<char>,
@@ -126,7 +126,7 @@ impl DFA {
 
     //Take the cartesian product of 2 DFAs.
     //This is the basis for both union and intersection.
-    fn dfa_product(d1: &DFA, d2: &DFA, f: |bool, bool| -> bool) -> Option<DFA> {
+    fn dfa_product<F: FnMut(bool, bool) -> bool>(d1: &DFA, d2: &DFA, mut f: F) -> Option<DFA> {
         //Check that the DFAs have matching alphabets
         //To do this, we need to clone and sort :(
         let mut a1 = d1.alphabet.clone();
@@ -155,7 +155,7 @@ impl DFA {
             }
         }
 
-        let start: uint = state_map.get_copy(&(d1.start, d2.start));
+        let start = *state_map.get(&(d1.start, d2.start)).unwrap();
 
         //Build the transitions
         let trns_size = num_states * d1.alphabet.len();
@@ -164,10 +164,10 @@ impl DFA {
         for i in range(0, d1.num_states) {
             for j in range(0, d2.num_states) {
                 for sym in d1.alphabet.iter() {
-                    let s1 = d1.delta.get_copy(&(i, *sym));
-                    let s2 = d2.delta.get_copy(&(j, *sym));
-                    let curr_s = state_map.get_copy(&(i,j));
-                    let new_s = state_map.get_copy(&(s1, s2));
+                    let s1 = *d1.delta.get(&(i, *sym)).unwrap();
+                    let s2 = *d2.delta.get(&(j, *sym)).unwrap();
+                    let curr_s = *state_map.get(&(i,j)).unwrap();
+                    let new_s = *state_map.get(&(s1, s2)).unwrap();
                     trns_fn.insert((curr_s, sym.clone()), new_s);
                 }
             }
@@ -185,7 +185,7 @@ impl DFA {
     /// It accepts all strings over self's alphabet that self rejects and vice versa.
     pub fn complement(&self) -> DFA {
         let all_states: Vec<uint> = range(0, self.num_states).collect();
-        let accept: Vec<uint> = all_states.move_iter().filter(|x| !self.accept.contains(x)).collect();
+        let accept: Vec<uint> = all_states.into_iter().filter(|x| !self.accept.contains(x)).collect();
         
         let mut bv = BitvSet::new();
         for i in accept.iter() {
@@ -212,7 +212,7 @@ impl DFA {
             let mut temp = BitvSet::new();
             for elem in new_states.iter() {
                 for sym in self.alphabet.iter() {
-                    temp.insert(self.delta.get_copy(&(elem, *sym)));
+                    temp.insert(*self.delta.get(&(elem, *sym)).unwrap());
                 }
             }
 
@@ -257,7 +257,7 @@ impl DFA {
             for sym in self.alphabet.iter() {
                 let mut x = BitvSet::new();
                 for s in reachable.iter() {
-                    match self.delta.find(&(s, *sym)) {
+                    match self.delta.get(&(s, *sym)) {
                         Some(v) if set.contains(v) => { x.insert(*v); },
                         _ => {}
                     }
@@ -265,7 +265,7 @@ impl DFA {
 
                 let mut new_p = vec!();
 
-                for y in partitions.move_iter() {
+                for y in partitions.into_iter() {
                     let mut intersection = y.clone();
                     intersection.intersect_with(&x);
                     if intersection.is_empty() {
@@ -304,7 +304,7 @@ impl DFA {
         }
 
         //Remove empty partitions and return
-       partitions.move_iter().filter(|ref x| !x.is_empty()).collect()
+       partitions.into_iter().filter(|ref x| !x.is_empty()).collect()
     }
 
     /// Reduces the amount of states in-place to the minimum necessary to recognize the same language.
@@ -325,7 +325,7 @@ impl DFA {
             };
 
             for sym in self.alphabet.iter() {
-                let new_state = self.delta.get(&(elem, *sym));
+                let new_state = self.delta.get(&(elem, *sym)).unwrap();
                 for (new_idx, s) in partitions.iter().enumerate() {
                     if s.contains(new_state) {
                         transitions.insert((idx, *sym), new_idx);//(idx, *sym, new_idx));
@@ -370,8 +370,8 @@ impl Run for DFA {
 
         // Compute the transition for each char in string
         for sym in string.chars() { 
-             match self.delta.find_copy(&(curr_state, sym)) {
-                Some(v) => curr_state = v,
+             match self.delta.get(&(curr_state, sym)) {
+                Some(v) => curr_state = *v,
                 None => return None
              }
         }
